@@ -1,14 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
-import { HouseLine } from 'phosphor-react-native';
+import { HouseLine, Trash } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { Header } from '../../components/Header';
 import { HistoryCard, HistoryProps } from '../../components/HistoryCard';
 
+import { Swipeable } from 'react-native-gesture-handler';
 import Animated, { Layout, SlideInRight, SlideOutRight } from 'react-native-reanimated';
 import { Loading } from '../../components/Loading';
 import { historyGetAll, historyRemove } from '../../storage/quizHistoryStorage';
+import { THEME } from '../../styles/theme';
 import { styles } from './styles';
 
 export function History() {
@@ -67,12 +69,18 @@ export function History() {
         {
           history.map((item) => (
             <Animated.View   key={item.id} layout={Layout.springify()} entering={SlideInRight} exiting={SlideOutRight}>
-            <TouchableOpacity
-              onPress={() => handleRemove(item.id)}
-            >
+              <Swipeable
+              overshootLeft={false}
+              containerStyle={styles.swipeableContainer}
+              renderLeftActions={() => (
+                <Pressable style={styles.swipeableRemove}>
+                  <Trash size={32} color={THEME.COLORS.GREY_100}/>
+                </Pressable>
+              )}
+              >
               <HistoryCard data={item} />
-              
-            </TouchableOpacity>
+              </Swipeable>
+            
             </Animated.View>
           ))
         }
