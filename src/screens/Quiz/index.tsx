@@ -8,6 +8,7 @@ import { styles } from './styles';
 import { QUIZ } from '../../data/quiz';
 import { historyAdd } from '../../storage/quizHistoryStorage';
 
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, Extrapolate, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { Loading } from '../../components/Loading';
@@ -36,6 +37,7 @@ export function Quiz() {
   const { id } = route.params as Params;
 
   const shake = useSharedValue(0)
+  const cardPosition = useSharedValue(0)
 
   function handleSkipConfirm() {
     Alert.alert('Pular', 'Deseja realmente pular a questão?', [
@@ -139,6 +141,12 @@ export function Quiz() {
     }
   })
 
+  const onPan = Gesture.Pan().onUpdate((event) => {
+    cardPosition.value = event.translationX;
+  }).onEnd(() => {
+    cardPosition.value = withTiming(0)
+  })
+
   useEffect(() => {
     const quizSelected = QUIZ.filter(item => item.id === id)[0];
     setQuiz(quizSelected);
@@ -180,6 +188,8 @@ export function Quiz() {
           totalOfQuestions={quiz.questions.length}
         />
         </Animated.View>
+
+        <GestureDetector gesture={onPan}>
         
         <Animated.View style={shakeStyleAnimation}>
         <Question
@@ -189,6 +199,8 @@ export function Quiz() {
           setAlternativeSelected={setAlternativeSelected}
         />
         </Animated.View>
+
+        </GestureDetector>
         
         <View style={styles.footer}>
           <OutlineButton title="Parar" onPress={handleStop} />
