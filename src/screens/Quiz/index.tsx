@@ -8,6 +8,8 @@ import { styles } from './styles';
 import { QUIZ } from '../../data/quiz';
 import { historyAdd } from '../../storage/quizHistoryStorage';
 
+import { Audio } from 'expo-av';
+import * as Haptics from 'expo-haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, Extrapolate, interpolate, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { ConfirmButton } from '../../components/ConfirmButton';
@@ -75,16 +77,28 @@ export function Quiz() {
     }
   }
 
+  async function playSound(isCorrect: boolean){
+    const file = isCorrect ? require ('../../assets/correct.mp3') : require('../../wrong.mp3')
+    
+   const {sound} = await Audio.Sound.createAsync(file, {shouldPlay:true})
+
+   await sound.setPositionAsync(0)
+   await sound.playAsync();
+  }
+
   async function handleConfirm() {
     if (alternativeSelected === null) {
       return handleSkipConfirm();
     }
 
     if (quiz.questions[currentQuestion].correct === alternativeSelected) {
-      setStatusReply(1);
       setPoints(prevState => prevState + 1);
+      await  playSound(true)
+      setStatusReply(1);
+     
       handleNextQuestion()
     }else{
+      await playSound(false)
       setStatusReply(2);
       shakeAnimation();
     }
@@ -109,7 +123,8 @@ export function Quiz() {
   }
 
 
-  function shakeAnimation(){
+ async function shakeAnimation(){
+  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     shake.value = withSequence(withTiming(3,{duration:400, easing: Easing.bounce}), 
     withTiming(0, undefined,(finished) => {
       'worklet';
